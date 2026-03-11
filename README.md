@@ -14,4 +14,4 @@ An automated event scraper for Drexel's DragonLink portal that uses AI to detect
 - Language: Python 3.x
 - Automation: Selenium WebDriver (Chrome)
 - Intelligence: OpenAI API (GPT-4o-mini)
-- Notifications: PHP Mailer API
+- Notifications: Pushbullet API
