@@ -33,7 +33,9 @@ class DragonLinkScraper:
     def __init__(self):
         # use headless mode to avoid opening a browser window
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
+        options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
 
         # This line automatically finds the right Chrome driver for your computer
         service = Service(ChromeDriverManager().install())
@@ -80,72 +82,90 @@ class DragonLinkScraper:
         return self.get_valid_links(cards)
 
     def get_valid_links(self, cards):
-        # returns links of events that haven't already happened
+        # returns data of events that haven't already happened
 
         links = []
         times = []
         locations = []
+        date_infos = []
+
+        print("gathering data")
+
+        with open("seen_events.txt", "r", encoding="utf-8") as file:
+            seen_events = file.read()
 
         for card in cards:
             try:
-                # Search each card for the elements marked as aria-labels, those are dates and locations
-                # Use the [aria-label] selector because it's an attribute
-                aria_elements = card.find_elements(By.CSS_SELECTOR, "div[aria-label]")
-                date_element = aria_elements[0]
-                location_element = aria_elements[1]
-
-                # Grab the text inside that attribute
-                date_text = date_element.get_attribute("aria-label")
-                location_text = location_element.get_attribute("aria-label")
-
-                date_text = date_text[
-                    13:
-                ]  # gets rid of "happening on " at the beginning of the string
-                times.append(date_text)
-
-                location_text = location_text[
-                    11:
-                ]  # gets rid of "located at " at the beginning
-                locations.append(location_text)
-
-                date_text = date_text.split(
-                    ","
-                )  # This should give us something like ['Monday', ' January 1 at 12:00AM EDT']
-
-                day = date_text[0].strip()  # 'Monday'
-
-                month_day_year = date_text[1][1:].split(
-                    " "
-                )  # ['January', '1', 'at', '12:00AM', 'EDT']
-
-                day = DAYS.index(day) + 1  # Convert 'Monday' to 1, 'Tuesday' to 2, etc.
-
-                month = (
-                    MONTHS.index(month_day_year[0]) + 1
-                )  # Convert 'January' to 1, 'February' to 2, etc.
-
-                day_of_month = int(month_day_year[1])  # Convert '1' to 1
-
-                # Now you can use Python's 'datetime' library to see if
-                # that date is before or after 'today'.
-                if DATE.month > month or (
-                    DATE.month == month and DATE.day > day_of_month
-                ):
-                    # This event has already happened, so we skip it
-                    continue
-
-                # Pull the 'href' (the URL) from each card
-                # We only keep it if it has '/event/' in the link to avoid trash links
-                links.append(
+                link = (
                     card.get_attribute("href")
-                ) if "/event/" in card.get_attribute("href") else None
+                    if "/event/" in card.get_attribute("href")
+                    else None
+                )
+
+                if link not in seen_events:
+                    # Search each card for the elements marked as aria-labels, those are dates and locations
+                    # Use the [aria-label] selector because it's an attribute
+                    aria_elements = card.find_elements(
+                        By.CSS_SELECTOR, "div[aria-label]"
+                    )
+                    date_element = aria_elements[0]
+                    location_element = aria_elements[1]
+
+                    # Grab the text inside that attribute
+                    date_text = date_element.get_attribute("aria-label")
+                    location_text = location_element.get_attribute("aria-label")
+
+                    date_text = date_text[
+                        13:
+                    ]  # gets rid of "happening on " at the beginning of the string
+
+                    location_text = location_text[
+                        11:
+                    ]  # gets rid of "located at " at the beginning
+
+                    date_text_split = date_text.split(
+                        ","
+                    )  # This should give us something like ['Monday', ' January 1 at 12:00AM EDT']
+
+                    day = date_text_split[0].strip()  # 'Monday'
+
+                    month_day_year = date_text_split[1][1:].split(
+                        " "
+                    )  # ['January', '1', 'at', '12:00AM', 'EDT']
+
+                    day = (
+                        DAYS.index(day) + 1
+                    )  # Convert 'Monday' to 1, 'Tuesday' to 2, etc.
+
+                    month = (
+                        MONTHS.index(month_day_year[0]) + 1
+                    )  # Convert 'January' to 1, 'February' to 2, etc.
+
+                    day_of_month = int(month_day_year[1])  # Convert '1' to 1
+
+                    if DATE.month > month or (
+                        DATE.month == month and DATE.day > day_of_month
+                    ):
+                        # This event has already happened, so we skip it
+                        continue
+
+                    # Pull the 'href' (the URL) from each card
+                    # We only keep it if it has '/event/' in the link to avoid trash links
+                    links.append(link)
+                    date_infos.append([month, day_of_month])
+                    times.append(date_text)
+                    locations.append(location_text)
 
             except Exception:
                 # Some cards might be formatted differently; this prevents a crash
                 continue
 
-        # set() removes duplicates
-        return list(set(links)), times, locations
+        return (
+            None if len(links) == 0 else list(set(links)),
+            times,
+            locations,
+            date_infos,
+        )
 
     def get_description(self, link):
         self.driver.get(link)
