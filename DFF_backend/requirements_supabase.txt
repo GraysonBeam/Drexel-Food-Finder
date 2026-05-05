@@ -1,0 +1,4 @@
+supabase
+requests
+schedule
+python-dotenv

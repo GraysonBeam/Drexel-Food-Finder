@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.env
+
+# Selenium
+chromedriver
+seen_events.txt
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+build/
+
+# Env files (all levels)
+**/.env
+**/.env.local
+**/.env.production
