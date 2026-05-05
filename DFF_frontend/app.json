@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Drexel Food Finder",
+    "slug": "drexel-food-finder",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.drexel.foodfinder"
+    },
+    "android": {
+      "package": "com.drexel.foodfinder",
+      "adaptiveIcon": {
+        "backgroundColor": "#0033A0"
+      }
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-asset",
+      "expo-font"
+    ],
+    "newArchEnabled": true
+  }
+}

@@ -1,0 +1,12 @@
+
+#tool libraries
+selenium
+webdriver-manager    # Automatically handles your Chrome driver updates
+python-dotenv        # Loads your API keys from the .env file
+openai
+pushbullet.py        # Note: the library name is pushbullet.py for pip
+pywebio
+pathlib
+
+#backend libraries
+sqlalchemy
