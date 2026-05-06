@@ -1,5 +1,6 @@
 import datetime
 import os
+import shutil
 import time
 
 from selenium import webdriver
@@ -32,14 +33,24 @@ DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sun
 
 class DragonLinkScraper:
     def __init__(self):
-        # use headless mode to avoid opening a browser window
         options = webdriver.ChromeOptions()
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
 
-        # This line automatically finds the right Chrome driver for your computer
-        service = Service(ChromeDriverManager().install())
+        # On Railway (Linux), use system Chromium installed via nixpacks
+        chromium_bin = shutil.which("chromium") or shutil.which("chromium-browser")
+        chromedriver_bin = shutil.which("chromedriver")
+
+        if chromium_bin:
+            options.binary_location = chromium_bin
+
+        if chromedriver_bin:
+            service = Service(chromedriver_bin)
+        else:
+            service = Service(ChromeDriverManager().install())
+
         self.driver = webdriver.Chrome(service=service, options=options)
         self.base_url = "https://dragonlink.drexel.edu"
 
@@ -49,7 +60,7 @@ class DragonLinkScraper:
         count = 0
         while True:
             try:
-                os.system("cls")
+                os.system("cls" if os.name == "nt" else "clear")
                 print(f"loading links {count}-{count + 15}")
                 # Look for a button containing the text 'Load More'
                 # WebDriverWait tells the code 'don't crash, just wait 5 seconds'
@@ -75,7 +86,7 @@ class DragonLinkScraper:
                 print("No more 'Load More' button found. List is fully expanded.")
                 break
 
-        os.system("cls")
+        os.system("cls" if os.name == "nt" else "clear")
 
         # Use a CSS Selector: 'div#eventdiscoverylist a' means 'all links inside that ID'
         cards = self.driver.find_elements(By.CSS_SELECTOR, "div#event-discovery-list a")

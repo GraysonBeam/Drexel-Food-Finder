@@ -29,7 +29,7 @@ def run_scraper():
     try:
         links, times, locations, date_infos = scraper.fetch_valid_events()
 
-        os.system("cls")
+        os.system("cls" if os.name == "nt" else "clear")
         print("Getting and checking descriptions...")
 
         if links is not None:
